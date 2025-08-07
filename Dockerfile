@@ -10,10 +10,9 @@ COPY /gradle ./gradle
 
 # copy project src
 COPY src ./src
-COPY build ./build
 
 # build new jar
-RUN #./gradlew clean shadowJar
+RUN ./gradlew clean shadowJar
 
 # lightweight runtime image
 FROM eclipse-temurin:21-jre

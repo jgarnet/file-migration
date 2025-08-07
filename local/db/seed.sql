@@ -42,8 +42,8 @@ DECLARE
        max_id NUMERIC;
 BEGIN
     SELECT coalesce(max(file_id), 1) INTO max_id FROM migration_files;
-    RAISE NOTICE 'The max is %', max_id;
-    RAISE NOTICE 'The records is %', records;
+    RAISE NOTICE 'The current max ID is %', max_id;
+    RAISE NOTICE 'The number of records being added is %', records;
     INSERT INTO source_files (file_uri, file_name)
     SELECT
         '/files/' || uuid_generate_v4(),
