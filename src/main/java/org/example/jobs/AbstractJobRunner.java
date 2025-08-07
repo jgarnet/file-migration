@@ -43,19 +43,23 @@ public abstract class AbstractJobRunner implements Runnable {
         if (enabled) {
             boolean afterHoursOnly = this.config.getBoolean("AFTER_HOURS", true);
             if (afterHoursOnly) {
-                int targetHour = this.config.getInteger("TARGET_HOUR", 22);
-                int targetMinute = this.config.getInteger("TARGET_MINUTE", 0);
-                // only run after 10PM weekdays or on weekends
+                int startHour = this.config.getInteger("START_HOUR", 22);
+                int startMinute = this.config.getInteger("START_MINUTE", 0);
+                int endHour = this.config.getInteger("END_HOUR", 6);
+                int endMinute = this.config.getInteger("END_MINUTE", 0);
+                // only run after target time window during weekdays or on weekends
                 ZonedDateTime nowEst = ZonedDateTime.now(ET_ZONE);
-                boolean isAfterTargetTime = nowEst.toLocalTime().isAfter(LocalTime.of(targetHour, targetMinute, 0, 0));
+                LocalTime now = nowEst.toLocalTime();
+                boolean isAfterStartTime = now.isAfter(LocalTime.of(startHour, startMinute, 0, 0));
+                boolean isBeforeEndTime = now.isBefore(LocalTime.of(endHour, endMinute, 0, 0));
 
                 DayOfWeek day = nowEst.getDayOfWeek();
                 boolean isWeekend = (day == DayOfWeek.SATURDAY || day == DayOfWeek.SUNDAY);
-                boolean shouldRun = isWeekend || isAfterTargetTime;
+                boolean shouldRun = isWeekend || (isAfterStartTime && isBeforeEndTime);
 
                 if (!shouldRun) {
                     // wait to try again until target time ET (i.e. 10PM ET)
-                    ZonedDateTime targetTime = nowEst.withHour(targetHour).withMinute(targetMinute).withSecond(0).withNano(0);
+                    ZonedDateTime targetTime = nowEst.withHour(startHour).withMinute(startMinute).withSecond(0).withNano(0);
                     Duration waitDuration = Duration.between(nowEst, targetTime);
                     long secondsToWait = waitDuration.getSeconds();
                     this.schedule(secondsToWait);
