@@ -10,7 +10,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Provides common logic for scheduling and running Vault migration job runners.
+ * Provides common logic for scheduling and running file migration job runners.
  */
 public abstract class AbstractJobRunner implements Runnable {
     protected int backoffCounter = 0;

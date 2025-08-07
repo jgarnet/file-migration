@@ -27,7 +27,7 @@ The seed job will pick up the files and begin populating ranges for the workers 
   - Executions schedule immediately after last run per thread -- if no records are processed, a backoff period is used (30s, 5 mins, 10 mins, 30 mins, 60 mins)
   - Each execution scans the source table(s) based on the current range sequences
 - 1 seed thread 
-  - This will expand the migration range table which the worker threads use to migrate ranges 
+  - This will expand the migration range table which the worker threads use to migrate batches 
   - Runs hourly
 - 5 retry threads 
   - Scans the migration files table for failed records -- will retry in batches of 500 per thread 
