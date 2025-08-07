@@ -1,0 +1,50 @@
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: file-migration
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+      - "5005:5005"
+    env_file:
+      - ../.env
+  redis:
+    image: redis:7.2
+    container_name: local-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: [ "redis-server", "--appendonly", "yes" ]
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+  postgres:
+    image: postgres:15
+    container_name: postgres-db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "pg_isready", "-h", "localhost", "-p", "5432", "-U", "postgres"]
+      interval: 2s
+      timeout: 2s
+      retries: 3
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: files
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db:/docker-entrypoint-initdb.d:ro
+volumes:
+  redis-data:
+  pgdata:
