@@ -2,6 +2,23 @@
 
 Example project leveraging parallelized workers responsible for moving files from one file storage system to another (i.e. on-prem storage to cloud storage).
 
+## Running Locally
+
+The project leverages [Docker](./Dockerfile) and [docker-compose](./local/docker-compose.yml) for local use.
+
+The [scripts](./scripts) directory provides scripts for quickly standing up and tearing down the Docker resources:
+- [docker-run.sh](./scripts/docker-run.sh) builds and runs the containers in docker-compose.yml
+- [docker-down.sh](./scripts/docker-down.sh) tears down the containers
+
+The [seed_files](./local/db/seed.sql) procedure may be used to seed fake data into `source_files` on the postgres container:
+
+```shell
+psql -U postgres -d files
+call seed_files(1000000);
+```
+
+The seed job will pick up the files and begin populating ranges for the workers to process.
+
 ## Overview
 
 - Jobs only run during run windows, if enabled (nightly and weekends only)
