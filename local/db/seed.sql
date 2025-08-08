@@ -41,7 +41,7 @@ AS $$
 DECLARE
        max_id NUMERIC;
 BEGIN
-    SELECT coalesce(max(file_id), 1) INTO max_id FROM migration_files;
+    SELECT coalesce(max(file_id), 0) INTO max_id FROM source_files;
     RAISE NOTICE 'The current max ID is %', max_id;
     RAISE NOTICE 'The number of records being added is %', records;
     INSERT INTO source_files (file_uri, file_name)
@@ -58,3 +58,6 @@ select count(status), status from migration_ranges group by status;
 
 CREATE VIEW retry_report AS
 select count(retry_count), retry_count from migration_files group by retry_count;
+
+CREATE VIEW migration_status_report AS
+select count(status), status from migration_files group by status;
