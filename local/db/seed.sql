@@ -35,11 +35,11 @@ CREATE TABLE source_files (
 -- DML
 -- Seed source files table
 
-CREATE OR REPLACE PROCEDURE seed_files(records NUMERIC)
+CREATE OR REPLACE PROCEDURE seed_files(records BIGINT)
 LANGUAGE plpgsql
 AS $$
 DECLARE
-       max_id NUMERIC;
+       max_id BIGINT;
 BEGIN
     SELECT coalesce(max(file_id), 0) INTO max_id FROM source_files;
     RAISE NOTICE 'The current max ID is %', max_id;
