@@ -44,12 +44,8 @@ public class MigrationJob extends AbstractJobRunner {
                     this.log.info(String.format("Processed %d records", recordsProcessed));
                     // if no attachments processed this time, last processed id should inherit from last successful run
                     this.rangesRepository.saveRange(job.getRangeId(), JobStatus.COMPLETE);
-                    // increment backoff counter if no records were processed
-                    if (recordsProcessed > 0) {
-                        this.backoffCounter = 0;
-                    } else {
-                        this.backoffCounter++;
-                    }
+                    // reset backoff as long as ranges are available
+                    this.backoffCounter = 0;
                 } catch (Exception e) {
                     this.log.error("Failed to execute file migration job");
                     this.log.error(e);
