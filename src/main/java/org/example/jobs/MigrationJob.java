@@ -122,4 +122,9 @@ public class MigrationJob extends AbstractJobRunner {
     protected long getDefaultDelay() {
         return this.config.getInteger("MIGRATION_DELAY", 0);
     }
+
+    @Override
+    protected String getName() {
+        return "Migration";
+    }
 }

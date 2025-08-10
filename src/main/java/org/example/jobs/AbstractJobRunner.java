@@ -79,6 +79,7 @@ public abstract class AbstractJobRunner implements Runnable {
             // increment delay based on backoff periods if no records are available at this time to avoid wasting resources
             int index = Math.min(backoffCounter - 1, backoffPeriods.size() - 1);
             delay = backoffPeriods.get(index);
+            this.log.info(String.format("%s job backoff triggered; delaying job for %d seconds", this.getName(), delay));
         }
         this.schedule(delay);
     }
@@ -93,5 +94,5 @@ public abstract class AbstractJobRunner implements Runnable {
 
     protected abstract void process();
     protected abstract long getDefaultDelay();
+    protected abstract String getName();
 }
-

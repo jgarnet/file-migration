@@ -45,4 +45,9 @@ public class CleanupJob extends AbstractJobRunner {
     protected long getDefaultDelay() {
         return this.config.getInteger("CLEANUP_DELAY", 3600);
     }
+
+    @Override
+    protected String getName() {
+        return "Cleanup";
+    }
 }

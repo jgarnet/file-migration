@@ -86,4 +86,9 @@ public class RetryJob extends AbstractJobRunner {
     protected long getDefaultDelay() {
         return this.config.getInteger("RETRY_DELAY", 1800);
     }
+
+    @Override
+    protected String getName() {
+        return "Retry";
+    }
 }

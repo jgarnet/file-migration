@@ -45,4 +45,9 @@ public class SeedJob extends AbstractJobRunner {
     protected long getDefaultDelay() {
         return this.config.getInteger("SEED_DELAY", 3600);
     }
+
+    @Override
+    protected String getName() {
+        return "Seed";
+    }
 }
