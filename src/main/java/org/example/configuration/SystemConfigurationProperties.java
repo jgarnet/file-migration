@@ -7,6 +7,7 @@ public class SystemConfigurationProperties implements ConfigurationProperties {
         if (value == null) {
             return defaultValue;
         }
+        value = value.replaceAll("_", "").replaceAll(",", "");
         return Integer.parseInt(value);
     }
 
