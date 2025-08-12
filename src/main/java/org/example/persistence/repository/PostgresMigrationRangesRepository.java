@@ -103,7 +103,7 @@ public class PostgresMigrationRangesRepository implements MigrationRangesReposit
                             }
                         }
                     }
-                    if (currentMax != -1 && nextMax != -1) {
+                    if (currentMax > 0 && nextMax > 0) {
                         // don't do anything if max sequence has not changed
                         if (currentMax != nextMax) {
                             this.runSeedQuery(conn, currentMax + 1, nextMax);
