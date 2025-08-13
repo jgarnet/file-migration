@@ -17,6 +17,7 @@ import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class GlobalScheduler implements Runnable {
     private static final String GLOBAL_KEY = "MIGRATION_GLOBAL_LOCK";
@@ -34,8 +35,10 @@ public class GlobalScheduler implements Runnable {
     private ScheduledExecutorService retryScheduler;
     private ScheduledExecutorService cleanupScheduler;
     private boolean schedulersInitialized = false;
+    private final AtomicBoolean shutdown;
 
     public GlobalScheduler(ConfigurationProperties config, Lock lock, FilesRepository filesRepository, MigrationFilesRepository migrationFilesRepository, MigrationRangesRepository rangesRepository, FileMover fileMover) {
+        this.shutdown = new AtomicBoolean(false);
         this.config = config;
         this.lock = lock;
         this.filesRepository = filesRepository;
@@ -86,25 +89,29 @@ public class GlobalScheduler implements Runnable {
                 this.migrationFilesRepository,
                 this.filesRepository,
                 this.fileMover,
-                this.lock
+                this.lock,
+                this.shutdown
         );
         SeedJob seedJob = new SeedJob(
                 this.config,
                 this.seedScheduler,
                 this.lock,
-                this.rangesRepository
+                this.rangesRepository,
+                this.shutdown
         );
         RetryJob retryJob = new RetryJob(
                 this.config,
                 this.retryScheduler,
                 this.migrationFilesRepository,
-                this.fileMover
+                this.fileMover,
+                this.shutdown
         );
         CleanupJob cleanupJob = new CleanupJob(
                 this.config,
                 this.cleanupScheduler,
                 this.lock,
-                this.rangesRepository
+                this.rangesRepository,
+                this.shutdown
         );
 
         // Initialize

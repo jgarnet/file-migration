@@ -6,14 +6,15 @@ import org.example.persistence.repository.MigrationRangesRepository;
 
 import java.util.UUID;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class CleanupJob extends AbstractJobRunner {
     private final static String JOB_KEY = "CLEANUP_JOB";
     private final Lock lock;
     private final MigrationRangesRepository rangesRepository;
 
-    public CleanupJob(ConfigurationProperties config, ScheduledExecutorService scheduler, Lock lock, MigrationRangesRepository rangesRepository) {
-        super(config, scheduler);
+    public CleanupJob(ConfigurationProperties config, ScheduledExecutorService scheduler, Lock lock, MigrationRangesRepository rangesRepository, AtomicBoolean shutdown) {
+        super(config, scheduler, shutdown);
         this.lock = lock;
         this.rangesRepository = rangesRepository;
     }

@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MigrationJob extends AbstractJobRunner {
     private final MigrationRangesRepository rangesRepository;
@@ -22,8 +23,8 @@ public class MigrationJob extends AbstractJobRunner {
     private final FileMover fileMover;
     private final Lock lock;
 
-    public MigrationJob(ConfigurationProperties config, ScheduledExecutorService scheduler, MigrationRangesRepository rangesRepository, MigrationFilesRepository migrationFilesRepository, FilesRepository filesRepository, FileMover fileMover, Lock lock) {
-        super(config, scheduler);
+    public MigrationJob(ConfigurationProperties config, ScheduledExecutorService scheduler, MigrationRangesRepository rangesRepository, MigrationFilesRepository migrationFilesRepository, FilesRepository filesRepository, FileMover fileMover, Lock lock, AtomicBoolean shutdown) {
+        super(config, scheduler, shutdown);
         this.rangesRepository = rangesRepository;
         this.migrationFilesRepository = migrationFilesRepository;
         this.filesRepository = filesRepository;

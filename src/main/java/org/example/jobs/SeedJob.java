@@ -6,14 +6,15 @@ import org.example.persistence.repository.MigrationRangesRepository;
 
 import java.util.UUID;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class SeedJob extends AbstractJobRunner {
     private final Lock lock;
     private final MigrationRangesRepository rangesRepository;
     private final static String LOCK_KEY = "SEED_JOB";
 
-    public SeedJob(ConfigurationProperties config, ScheduledExecutorService scheduler, Lock lock, MigrationRangesRepository rangesRepository) {
-        super(config, scheduler);
+    public SeedJob(ConfigurationProperties config, ScheduledExecutorService scheduler, Lock lock, MigrationRangesRepository rangesRepository, AtomicBoolean shutdown) {
+        super(config, scheduler, shutdown);
         this.lock = lock;
         this.rangesRepository = rangesRepository;
     }

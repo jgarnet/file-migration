@@ -12,13 +12,14 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class RetryJob extends AbstractJobRunner {
     private final MigrationFilesRepository migrationFilesRepository;
     private final FileMover fileMover;
 
-    public RetryJob(ConfigurationProperties config, ScheduledExecutorService scheduler, MigrationFilesRepository migrationFilesRepository, FileMover fileMover) {
-        super(config, scheduler);
+    public RetryJob(ConfigurationProperties config, ScheduledExecutorService scheduler, MigrationFilesRepository migrationFilesRepository, FileMover fileMover, AtomicBoolean shutdown) {
+        super(config, scheduler, shutdown);
         this.migrationFilesRepository = migrationFilesRepository;
         this.fileMover = fileMover;
     }

@@ -8,6 +8,7 @@ import java.time.*;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Provides common logic for scheduling and running file migration job runners.
@@ -25,10 +26,12 @@ public abstract class AbstractJobRunner implements Runnable {
     protected final Logger log = new SystemLogger();
     protected final ConfigurationProperties config;
     private final ScheduledExecutorService scheduler;
+    private final AtomicBoolean shutdown;
 
-    public AbstractJobRunner(ConfigurationProperties config, ScheduledExecutorService scheduler) {
+    public AbstractJobRunner(ConfigurationProperties config, ScheduledExecutorService scheduler, AtomicBoolean shutdown) {
         this.config = config;
         this.scheduler = scheduler;
+        this.shutdown = shutdown;
     }
 
     @Override
@@ -39,6 +42,9 @@ public abstract class AbstractJobRunner implements Runnable {
     }
 
     protected boolean shouldRun() {
+        if (this.shutdown.get()) {
+            return false;
+        }
         boolean enabled = this.config.getBoolean("ENABLE_JOB", false);
         if (enabled) {
             boolean afterHoursOnly = this.config.getBoolean("AFTER_HOURS", true);
@@ -85,7 +91,9 @@ public abstract class AbstractJobRunner implements Runnable {
     }
 
     public void schedule(long delay) {
-        this.scheduler.schedule(this, delay, TimeUnit.SECONDS);
+        if (!this.shutdown.get() && !this.scheduler.isShutdown() && !this.scheduler.isTerminated()) {
+            this.scheduler.schedule(this, delay, TimeUnit.SECONDS);
+        }
     }
 
     protected List<Integer> getBackoffPeriods() {
