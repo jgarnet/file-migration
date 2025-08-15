@@ -1,6 +1,7 @@
 package org.example.jobs;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.example.BackoffCounter;
 import org.example.configuration.ConfigurationProperties;
 import org.example.file.*;
 import org.example.lock.Lock;
@@ -22,6 +23,7 @@ public class MigrationJob extends AbstractJobRunner {
     private final FilesRepository filesRepository;
     private final FileMover fileMover;
     private final Lock lock;
+    private final BackoffCounter lockCounter;
 
     public MigrationJob(ConfigurationProperties config, ScheduledExecutorService scheduler, MigrationRangesRepository rangesRepository, MigrationFilesRepository migrationFilesRepository, FilesRepository filesRepository, FileMover fileMover, Lock lock, AtomicBoolean shutdown) {
         super(config, scheduler, shutdown);
@@ -30,6 +32,7 @@ public class MigrationJob extends AbstractJobRunner {
         this.filesRepository = filesRepository;
         this.fileMover = fileMover;
         this.lock = lock;
+        this.lockCounter = new BackoffCounter(List.of(10, 30, 60, 300));
     }
 
     protected void process() {
@@ -47,6 +50,7 @@ public class MigrationJob extends AbstractJobRunner {
                     this.rangesRepository.saveRange(job.getRangeId(), JobStatus.COMPLETE);
                     // reset backoff as long as ranges are available
                     this.backoffCounter = 0;
+                    this.lockCounter.reset();
                 } catch (Exception e) {
                     this.log.error("Failed to execute file migration job");
                     this.log.error(e);
@@ -66,8 +70,12 @@ public class MigrationJob extends AbstractJobRunner {
                     this.log.info("No migration ranges available");
                     // no jobs available in db -- increment backoff counter
                     this.backoffCounter++;
+                    this.schedule();
+                } else {
+                    this.lockCounter.increment();
+                    this.log.info("Failed to lock range %d -- backing off %d seconds", job.getRangeId(), this.lockCounter.getBackoff());
+                    this.schedule(this.lockCounter.getBackoff());
                 }
-                this.schedule();
             }
         } catch (Exception e) {
             this.log.error("Encountered issue running migration job");

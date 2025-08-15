@@ -29,7 +29,7 @@ public class GlobalScheduler implements Runnable {
     private final MigrationFilesRepository migrationFilesRepository;
     private final MigrationRangesRepository rangesRepository;
     private final FileMover fileMover;
-    private ScheduledExecutorService globalScheduler;
+    private final ScheduledExecutorService globalScheduler;
     private ScheduledExecutorService jobScheduler;
     private ScheduledExecutorService seedScheduler;
     private ScheduledExecutorService retryScheduler;
@@ -82,47 +82,42 @@ public class GlobalScheduler implements Runnable {
         this.seedScheduler = Executors.newSingleThreadScheduledExecutor();
         this.cleanupScheduler = Executors.newSingleThreadScheduledExecutor();
 
-        MigrationJob migrationJob = new MigrationJob(
-                this.config,
-                this.jobScheduler,
-                this.rangesRepository,
-                this.migrationFilesRepository,
-                this.filesRepository,
-                this.fileMover,
-                this.lock,
-                this.shutdown
-        );
-        SeedJob seedJob = new SeedJob(
+        // Initialize
+        this.seedScheduler.submit(new SeedJob(
                 this.config,
                 this.seedScheduler,
                 this.lock,
                 this.rangesRepository,
                 this.shutdown
-        );
-        RetryJob retryJob = new RetryJob(
-                this.config,
-                this.retryScheduler,
-                this.migrationFilesRepository,
-                this.fileMover,
-                this.shutdown
-        );
-        CleanupJob cleanupJob = new CleanupJob(
+        ));
+        for (int i = 0; i < jobThreads; i++) {
+            this.jobScheduler.schedule(new MigrationJob(
+                    this.config,
+                    this.jobScheduler,
+                    this.rangesRepository,
+                    this.migrationFilesRepository,
+                    this.filesRepository,
+                    this.fileMover,
+                    this.lock,
+                    this.shutdown
+            ), 5, TimeUnit.SECONDS);
+        }
+        for (int i = 0; i < retryThreads; i++) {
+            this.retryScheduler.schedule(new RetryJob(
+                    this.config,
+                    this.retryScheduler,
+                    this.migrationFilesRepository,
+                    this.fileMover,
+                    this.shutdown
+            ), 30, TimeUnit.SECONDS);
+        }
+        this.cleanupScheduler.schedule(new CleanupJob(
                 this.config,
                 this.cleanupScheduler,
                 this.lock,
                 this.rangesRepository,
                 this.shutdown
-        );
-
-        // Initialize
-        this.seedScheduler.submit(seedJob);
-        for (int i = 0; i < jobThreads; i++) {
-            this.jobScheduler.schedule(migrationJob, 30, TimeUnit.SECONDS);
-        }
-        for (int i = 0; i < retryThreads; i++) {
-            this.retryScheduler.schedule(retryJob, 30, TimeUnit.SECONDS);
-        }
-        this.cleanupScheduler.schedule(cleanupJob, 60, TimeUnit.SECONDS);
+        ), 60, TimeUnit.SECONDS);
     }
 
     private void shutdownSchedulers() {
