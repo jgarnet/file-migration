@@ -56,12 +56,21 @@ public abstract class AbstractJobRunner implements Runnable {
                 // only run after target time window during weekdays or on weekends
                 ZonedDateTime nowEst = ZonedDateTime.now(ET_ZONE);
                 LocalTime now = nowEst.toLocalTime();
-                boolean isAfterStartTime = now.isAfter(LocalTime.of(startHour, startMinute, 0, 0));
-                boolean isBeforeEndTime = now.isBefore(LocalTime.of(endHour, endMinute, 0, 0));
+                LocalTime startTime = LocalTime.of(startHour, startMinute);
+                LocalTime endTime = LocalTime.of(endHour, endMinute);
 
                 DayOfWeek day = nowEst.getDayOfWeek();
+                boolean isInWindow;
+                if (startTime.isBefore(endTime)) {
+                    // normal same-day window
+                    isInWindow = !now.isBefore(startTime) && now.isBefore(endTime);
+                } else {
+                    // cross-midnight window
+                    isInWindow = !now.isBefore(startTime) || now.isBefore(endTime);
+                }
+
                 boolean isWeekend = (day == DayOfWeek.SATURDAY || day == DayOfWeek.SUNDAY);
-                boolean shouldRun = isWeekend || (isAfterStartTime && isBeforeEndTime);
+                boolean shouldRun = isWeekend || isInWindow;
 
                 if (!shouldRun) {
                     // wait to try again until target time ET (i.e. 10PM ET)
