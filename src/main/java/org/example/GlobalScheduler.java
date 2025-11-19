@@ -56,6 +56,8 @@ public class GlobalScheduler implements Runnable {
                 int globalJobTtl = this.config.getInteger("GLOBAL_LOCK_TTL", 7_200);
                 if (this.lock.acquireLock(GLOBAL_KEY, GLOBAL_LOCK, globalJobTtl)) {
                     this.globalScheduler.submit(this::scheduleJobs);
+                    // ensure after job window, the global rescheduler will either keep job lock or transition to other container
+                    this.globalScheduler.schedule(this, globalJobTtl, TimeUnit.SECONDS);
                 } else {
                     // job already locked by another container; wait to check again until lock period is over
                     this.globalScheduler.schedule(this, globalJobTtl, TimeUnit.SECONDS);
