@@ -13,6 +13,7 @@ import org.example.persistence.repository.FilesRepository;
 import org.example.persistence.repository.MigrationFilesRepository;
 import org.example.persistence.repository.MigrationRangesRepository;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -96,12 +97,13 @@ public class GlobalScheduler implements Runnable {
             this.jobScheduler.schedule(new MigrationJob(
                     this.config,
                     this.jobScheduler,
+                    this.shutdown,
                     this.rangesRepository,
                     this.migrationFilesRepository,
                     this.filesRepository,
                     this.fileMover,
                     this.lock,
-                    this.shutdown
+                    new BackoffCounter(List.of(10, 30, 60, 300))
             ), 5, TimeUnit.SECONDS);
         }
         for (int i = 0; i < retryThreads; i++) {

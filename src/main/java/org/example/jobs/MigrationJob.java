@@ -25,14 +25,24 @@ public class MigrationJob extends AbstractJobRunner {
     private final Lock lock;
     private final BackoffCounter lockCounter;
 
-    public MigrationJob(ConfigurationProperties config, ScheduledExecutorService scheduler, MigrationRangesRepository rangesRepository, MigrationFilesRepository migrationFilesRepository, FilesRepository filesRepository, FileMover fileMover, Lock lock, AtomicBoolean shutdown) {
+    public MigrationJob(
+            ConfigurationProperties config,
+            ScheduledExecutorService scheduler,
+            AtomicBoolean shutdown,
+            MigrationRangesRepository rangesRepository,
+            MigrationFilesRepository migrationFilesRepository,
+            FilesRepository filesRepository,
+            FileMover fileMover,
+            Lock lock,
+            BackoffCounter lockCounter
+    ) {
         super(config, scheduler, shutdown);
         this.rangesRepository = rangesRepository;
         this.migrationFilesRepository = migrationFilesRepository;
         this.filesRepository = filesRepository;
         this.fileMover = fileMover;
         this.lock = lock;
-        this.lockCounter = new BackoffCounter(List.of(10, 30, 60, 300));
+        this.lockCounter = lockCounter;
     }
 
     protected void process() {
