@@ -57,8 +57,14 @@ public class GlobalScheduler implements Runnable {
                 // only run job on one container during a given period to reduce load if needed
                 int globalJobTtl = this.config.getInteger("GLOBAL_LOCK_TTL", 7_200);
                 if (this.lock.acquireLock(GLOBAL_KEY, GLOBAL_LOCK, globalJobTtl)) {
-                    this.log.info("Acquired global lock; scheduling jobs");
-                    this.globalScheduler.submit(this::scheduleJobs);
+                    if (!this.schedulersInitialized) {
+                        // only initialize schedulers if not already initialized
+                        // i.e. account for edge-case where container A has job lock, then re-acquires it again
+                        this.log.info("Acquired global lock; scheduling jobs");
+                        this.globalScheduler.submit(this::scheduleJobs);
+                    } else {
+                        this.log.info("Already have global lock; continuing migration");
+                    }
                     // ensure after global rotating window, the global scheduler will either keep job lock or
                     // transition to another container
                     this.globalScheduler.schedule(this, globalJobTtl, TimeUnit.SECONDS);
